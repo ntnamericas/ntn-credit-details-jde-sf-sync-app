@@ -1,0 +1,1 @@
+# ntn-credit-details-jde-sf-sync-app
