@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd">
+	<flow name="credit_details" doc:id="0e3ac2cc-837c-41c1-a2e1-e44a4109c7f4" >
+		<scheduler doc:name="Scheduler" doc:id="16871009-5f1c-40bb-a5ad-a78f3e03b8f3" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="30" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="jobRun" doc:id="5136013e-75d7-4154-a7ba-7569af6ec223" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="jobRun" ><![CDATA[%dw 2.0
+import * from dw::core::Strings
+
+fun year(date) =
+  (date as Date).year
+
+fun dayOfyear(date) =
+  (date as Date).dayOfYear
+
+fun C_value(date) =
+  floor((year(date) - 1900) / 100)
+
+fun JulianDate(date) =
+  {
+    date: C_value(date) ++ (year(date) as String)[2 to 3] ++ leftPad(dayOfyear(date), 3, "0"),
+    time: (((date.hour / 24) + (date.minutes / 1440) + (date.seconds / 86400)) splitBy ".")[-1]
+  }
+output application/json  
+---
+JulianDate(now())]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<os:retrieve doc:id="96d728f2-55c3-4bf4-bff3-ec21d2181599" key="previousJobRun" target="previousJobRun" doc:name="Retrieve :previousJobRun" >
+			<os:default-value ><![CDATA[#[vars.jobRun]]]></os:default-value>
+		</os:retrieve>
+		<flow-ref doc:name="credit_detailSub_Flow" doc:id="13cf115d-727b-4d39-badd-265ba66d1ba1" name="credit_detailSub_Flow" />
+		<os:store doc:id="76f95675-9f02-41c7-b8f5-cda6ad77864f" key="previousJobRun" doc:name="Store current job run details" >
+			<os:value ><![CDATA[#[vars.jobRun]]]></os:value>
+		</os:store>
+	</flow>
+	<sub-flow name="credit_detailSub_Flow" doc:id="c927517a-2606-407e-ae64-105d133095d3">
+		<logger level="INFO" doc:name="Start Logger" doc:id="4eaab530-0ae8-4e44-98a0-d018606d0013" message='#["Credit details start flow"]'/>
+		<ee:transform doc:name="Credit Details Query" doc:id="59b2feb9-359c-435f-85bb-c8069ef17d78">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+" SELECT
+    f1.SDAEXP,
+    f1.SDKCOO,
+    f1.SDUNCS,
+    f1.SDDGL,
+    f1.SDVR01,
+    f1.SDDCTO,
+    f1.SDUPRC,
+    f1.SDLITM,
+    f1.SDDOCO,
+    f1.SDLNID,
+    f1.SDUORG,
+    f1.SDSOQS,
+    f1.SDCRCD,
+    f1.SDSHAN,
+    f2.IMDRAW,
+    f3.AXDC,
+    f4.BPUPRC,
+    f5.IVCITM,
+    f6.IBPRP1,
+    f6.IBSRP4
+FROM
+    TESTDTA.F4211 f1
+LEFT JOIN
+    TESTDTA.F4101 f2
+    ON trim(f2.IMLITM) = trim(f1.SDLITM)
+FULL OUTER JOIN  TESTDTA.F4780 f3
+      ON trim(f3.AXAN8) = trim(f1.SDSHAN)
+      AND trim(f3.AXXRTS) = 'SF'
+LEFT JOIN
+    TESTDTA.F4106 f4
+    ON TRIM(f4.BPAN8) = '0' 
+    AND TRIM(f4.BPLITM) = trim(f1.SDLITM) 
+    AND TRIM(f4.BPMCU) = '1801' 
+    AND TRIM(f4.BPEFTJ) <= $(vars.jobRun.date)  
+    AND TRIM(f4.BPEXDJ) >= $(vars.jobRun.date) 
+LEFT JOIN
+    TESTDTA.F4104 f5
+    ON TRIM(f5.IVXRT) = 'C'
+    AND TRIM(f5.IVAN8) = trim(f1.SDAN8)
+    AND TRIM(f5.IVLITM) = trim(f1.SDLITM)
+    AND TRIM(f5.IVEFTJ) <= $(vars.jobRun.date) 
+    AND TRIM(f5.IVEXDJ) >= $(vars.jobRun.date) 
+LEFT JOIN
+    TESTDTA.F4102 f6
+       ON TRIM(f6.IBLITM) = trim(f1.SDLITM)
+        AND TRIM(f6.IBMCU) = '1801'
+WHERE
+    trim(f1.SDUPMJ) >= $(vars.jobRun.date) 
+    AND trim(f1.SDTDAY) < $(vars.previousJobRun.time) AND 
+        trim(f1.SDKCOO) = '00010' "]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:select doc:name="Execute Sql Query" doc:id="ac2f9ae6-bccd-43bf-9b03-370487f2f6c4" config-ref="Database_Config">
+			<db:sql><![CDATA[#[payload]]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transformation" doc:id="6e1274e6-89ac-4fb1-9153-daa2bc18a8aa">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+fun JuliantoNormalDate(in) = using (
+		day = in[2 to 4] default null,
+		year = in[0 to 1] default null
+)
+(((("0101" ++ year ) as Date {format: "ddMMyy"}) default "" + ("P$(day - 1)D" as Period)) as Date {format: "dd-MM-yyyy"}) default null
+---
+payload map ((item, index) -> 
+ {
+    "Account_Name__c": trim(item.AXDC),   //Id 
+    "Amount__c": trim(item.SDAEXP)/100 default "",   //currency
+    "Company_Number__c": trim(item.SDKCOO),   //string
+    "Cost_when_parts_ship__c": trim(item.SDUNCS)/10000 default "",   //currency
+    "Actual_Ship_Date__c": JuliantoNormalDate(trim(item.SDDGL))as Date default null,   //date
+    "Customer_Part_Number__c": trim(item.IVCITM),   //string
+    "IWD_Amount__c":
+    ((((trim(item.BPUPRC))/10000) default null )*(trim(item.SDUORG))) default null,    //currency 
+    "IWD_Price__c": (trim(item.BPUPRC )/10000)  default null, //currency
+    "JDE_Account__c": trim(item.SDSHAN),   //string 
+    "JDE_Order_Type__c": trim(item.SDDCTO),   //string
+    "Line__c": (trim(item.SDVR01 ) )default "" ++ ":" ++ "(" ++ trim(item.SDDOCO) default "" ++ "-" ++ ((trim(item.SDLNID)/1000)) default null ++ ")" default null,   //string [EXTERNAL ID]
+
+    "Line_Amount__c": trim(item.SDAEXP)/100 default null,   //currency
+    "Line_Price__c": trim(item.SDUPRC)/10000 default null,   //currency
+
+    "Net_Sales_Amount__c": ((((((trim(item.BPUPRC))/10000) default null )*(trim(item.SDUORG))) default null)- ((trim(item.SDAEXP)))) default null,   //currency
+    "NTN_Part__c": trim(item.SDLITM),   //string
+    "Order__c": trim(item.SDDOCO),   //number (0 dec)
+    "Order_Line__c": (trim(item.SDLNID)/1000) default null,   //number (3 dec)
+    "Order_Line_Qty__c": trim(item.SDUORG),   //number (0 dec)
+    "PO__c": trim(item.SDVR01),   //string
+    "Product_Part__c": trim(item.IMDRAW) default "" ++ "-" ++ trim(item.IBPRP1) default "" ++ "-" ++ trim(item.IBSRP4) default "",   //string 
+    "Quantity__c": trim(item.SDSOQS),   //number (0 dec)
+    "Rebate_Number__c": if ((item.SDVR01) contains  "MCA") (((item.SDVR01) splitBy  "MCA" )[1])[0 to 6] else if ((item.SDVR01) contains  "CPA") (((item.SDVR01) splitBy  "CPA" )[1])[0 to 6] else "" , //lookup
+    "Rebate_Type__c": trim(item.IMDRAW) default "" ++ "-" ++ trim(item.IBPRP1)default "" ++ "-" ++ trim(item.IBSRP4) default "",   //string
+  
+    "CurrencyIsoCode": trim(item.SDCRCD),   //string
+
+    "Name":  trim(item.SDVR01) default "" ++ ":" ++ "(" ++ trim(item.SDDOCO) default "" ++ "-" ++ ((item.SDLNID)/1000) default "" ++ ")"  //string
+  } )]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Salesforce Payload" doc:id="7e02129f-0ac0-4a76-95c0-df9d30ac5c94" message="#[payload]"/>
+		<ee:transform doc:name="For Each Variable" doc:id="ac36bbce-c34c-4843-b5b5-95f7feafb54f" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="successRecords" ><![CDATA[[]]]></ee:set-variable>
+				<ee:set-variable variableName="failureRecords" ><![CDATA[[]]]></ee:set-variable>
+				<ee:set-variable variableName="FEPayload" ><![CDATA[[]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="6bc9f24e-56e6-4f39-895a-5b7037ac9d8f" batchSize="2">
+			<ee:transform doc:name="Salesforce Request" doc:id="5785bd42-22fa-410f-87d5-cfa8d4cd6844">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{ 
+  "compositeRequest": flatten(((payload map([
+    ({
+      "method": "GET",
+      "referenceId": "refAccount$($$)",
+      "url": "/services/data/v57.0/query/?q=SELECT id from Account where JDE_AddressNumber__c = $($.JDE_Account__c)"
+    }) if(!isEmpty($.JDE_Account__c)),
+    ({
+      "method": "GET",
+      "referenceId": "refRebate$($$)",
+      "url": "/services/data/v57.0/query/?q=SELECT id from Rebate__c where 	RebateNumberText__c = '$($.Rebate_Number__c)'"
+    } ) if(!isEmpty($.Rebate_Number__c)),
+    {
+      "method": "POST",
+      "referenceId": "refUpdateCreditDetails$($$)",
+      "url": "/services/data/v57.0/sobjects/Rebate_Credit_Summary__c",
+      "body": {
+      	
+    "Account_Name__c": if(!isEmpty($.Account_Name__c))($.Account_Name__c) else "@{refAccount$($$).records[0].Id}",
+    "Amount__c": $.Amount__c,
+    "Company_Number__c": $.Company_Number__c,
+    "Cost_when_parts_ship__c": $.Cost_when_parts_ship__c,
+    "Actual_Ship_Date__c": $.Actual_Ship_Date__c,
+    "Customer_Part_Number__c": $.Customer_Part_Number__c,
+    "IWD_Amount__c": $.IWD_Amount__c,
+    "IWD_Price__c": $.IWD_Price__c,
+    "JDE_Account__c":$.JDE_Account__c,
+    "JDE_Order_Type__c": $.JDE_Order_Type__c,
+    "Line__c": $.Line__c,
+    "Line_Amount__c": $.Line_Amount__c,
+    "Line_Price__c": $.Line_Price__c,
+    "Net_Sales_Amount__c": $.Net_Sales_Amount__c,
+    "NTN_Part__c": $.NTN_Part__c,
+    "Order__c": $.Order__c,
+    "Order_Line__c": $.Order_Line__c,
+    "Order_Line_Qty__c": $.Order_Line_Qty__c,
+    "PO__c": $.PO__c,
+    "Product_Part__c": $.Product_Part__c,
+    "Quantity__c": $.Quantity__c,
+    "Rebate_Number__c": if(!isEmpty($.Rebate_Number__c))"@{refRebate$($$).records[0].Id}" else "",      
+    "Rebate_Type__c": $.Rebate_Type__c,                
+    "CurrencyIsoCode": $.CurrencyIsoCode,
+    "Name": $.Name
+      }
+    }]
+    
+  ))))
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<salesforce-composite:execute-composite-request doc:name="Execute composite request" doc:id="b67387f5-9398-44c1-a9c6-60be8cac8ab3" config-ref="Salesforce_Composite_Config">
+			<reconnect />
+		</salesforce-composite:execute-composite-request>
+			<ee:transform doc:name="Success and Failure Records" doc:id="59b13a81-0af7-42c0-8d81-cc9f31cde758" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="successRecords" ><![CDATA[%dw 2.0
+output application/json
+var creditDetailsRef = payload.compositeResponse filter ((item) -> item.referenceId contains "refUpdateCreditDetails" )
+
+var success = sizeOf(creditDetailsRef.body.success filter ($)) default 0
+---
+success]]></ee:set-variable>
+					<ee:set-variable variableName="failureRecords" ><![CDATA[%dw 2.0
+output application/json
+var creditDetailsRef = payload.compositeResponse filter ((item) -> item.referenceId contains "refUpdateCreditDetails" )
+
+var failure = sizeOf(creditDetailsRef.body.success filter (!$)) default 0
+---
+failure]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="Salesforce Response" doc:id="6e038d5e-845e-47f1-8277-d305808cebb1">
+				<ee:message>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="FEPayload" ><![CDATA[%dw 2.0
+output application/json
+var creditDetailsRef = payload.compositeResponse filter ((item) -> item.referenceId contains "refUpdateCreditDetails" )
+
+---
+([{
+   "creditUpdateTotalSuccessRecorde" : (sizeOf(creditDetailsRef.body.success filter ($)) default 0) + (vars.successRecords default 0),
+   "creditUpdateTotalFailureRecords " : (sizeOf(creditDetailsRef.body.success filter (!$)) default 0) + (vars.failureRecords default 0)
+}] + vars.FEPayload)]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</foreach>
+		<ee:transform doc:name="Response Payload" doc:id="e0edde65-aa82-46e4-9c26-8f040894ad0d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.FEPayload 
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="4b945e92-3ec7-4e23-813f-11c638d923a6" message='#[{"credit details end flow" : vars.FEPayload }]'/>
+	</sub-flow>
+</mule>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<salesforce-composite:composite-config name="Salesforce_Composite_Config" doc:name="Salesforce Composite Config" doc:id="e5e1e536-9a5d-4e2c-a350-b57ac154a9f1" >
+		<salesforce-composite:oauth-user-pass-connection consumerKey="${salesforce.consumerKey}" consumerSecret="${secure::salesforce.consumerSecret}" username="${salesforce.userName}" password="${secure::salesforce.password}" securityToken="${secure::salesforce.securityToken}" tokenEndpoint="${secure::salesforce.tokenUrl}" responseTimeout="10" connectionTimeout="2" responseTimeoutUnit="MINUTES" connectionTimeoutUnit="MINUTES">
+			<reconnection failsDeployment="true" >
+				<reconnect-forever />
+			</reconnection>
+		</salesforce-composite:oauth-user-pass-connection>
+		<expiration-policy maxIdleTime="10" timeUnit="MINUTES" />
+	</salesforce-composite:composite-config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="131334b7-5d6a-4ba6-8d74-26e10eb6920d" />
+		<db:config name="Database_Config" doc:name="Database Config" doc:id="fabbd01c-5b78-4709-90bd-6c1daf370674" >
+		<db:oracle-connection host="${database.host}" user="${database.userName}" password="${secure::database.password}" serviceName="${database.serviceName}" port="${database.port}"/>
+	</db:config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="e42dfb8f-1166-427c-8a2c-b5fedf9384a6" file="properties/dev-secure-properties.yaml" key="${mule.key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="75f9df82-d54a-42f9-b0b5-13246dfcd8de" file="properties/common.yaml" />
+	<global-property doc:name="Global Property" doc:id="557a1bee-da5c-4674-9922-0255a57482da" name="mule.key" value="secure12345" />
+	<configuration-properties doc:name="Configuration properties" doc:id="1f2f5b8a-472b-447e-ab1e-0198425e8c35" file="properties/dev-properties.yaml" />
+</mule>
