@@ -1,0 +1,21 @@
+api:
+  id: "12345678" 
+
+app:
+  name:  "credit-details" 
+  version: "1.0.0"  
+  env: "dev"
+http:
+  host: "0.0.0.0"
+  port: "8081"
+
+
+salesforce:
+  userName: "ntnmule@prowesssoft.com.muledev"
+  consumerKey: "3MVG9L6vUmMQkenO4eUEn5yWMHoerVYLl6GuerWyAZOrHXDwFS19L7AE7CuxfF.IqLkJb5WD5YC5FTLpEK9fD"
+
+database:
+  host: "129.147.16.140"
+  port: "1521"
+  userName: "c_mulesoft"
+  serviceName: "jdorcldv.netjiuwoz.vcnzgqox.oraclevcn.com" 

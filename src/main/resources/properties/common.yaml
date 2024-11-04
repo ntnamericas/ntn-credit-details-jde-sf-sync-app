@@ -1,0 +1,21 @@
+app:
+  name:    "credit_details"
+  version: "1.0.0"
+
+log.level: "INFO"
+
+max:
+  retries: "3"
+  frequency: "6000"
+  
+
+
+retry:
+ frequency: "3000"
+ attempts: "3"
+ 
+timeout:
+  connection: "1200000"
+  response: "3000000"
+
+  
