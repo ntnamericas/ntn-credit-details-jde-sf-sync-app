@@ -9,6 +9,9 @@ http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mu
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="695172e1-d25d-4aaa-a27a-430e69cc752c" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
 	<flow name="credit_details" doc:id="0e3ac2cc-837c-41c1-a2e1-e44a4109c7f4" >
 		<scheduler doc:name="Scheduler" doc:id="16871009-5f1c-40bb-a5ad-a78f3e03b8f3" >
 			<scheduling-strategy >
@@ -89,23 +92,23 @@ LEFT JOIN
     ON TRIM(f4.BPAN8) = '0' 
     AND TRIM(f4.BPLITM) = trim(f1.SDLITM) 
     AND TRIM(f4.BPMCU) = '1801' 
-    AND TRIM(f4.BPEFTJ) <= $(vars.jobRun.date)  
-    AND TRIM(f4.BPEXDJ) >= $(vars.jobRun.date) 
+    AND TRIM(f4.BPEFTJ) <= $(vars.jobRun.date) 
+    AND TRIM(f4.BPEXDJ) >= $(vars.jobRun.date)
 LEFT JOIN
     TESTDTA.F4104 f5
     ON TRIM(f5.IVXRT) = 'C'
     AND TRIM(f5.IVAN8) = trim(f1.SDAN8)
     AND TRIM(f5.IVLITM) = trim(f1.SDLITM)
-    AND TRIM(f5.IVEFTJ) <= $(vars.jobRun.date) 
-    AND TRIM(f5.IVEXDJ) >= $(vars.jobRun.date) 
+    AND TRIM(f5.IVEFTJ) <= $(vars.jobRun.date)
+    AND TRIM(f5.IVEXDJ) >= $(vars.jobRun.date)
 LEFT JOIN
     TESTDTA.F4102 f6
        ON TRIM(f6.IBLITM) = trim(f1.SDLITM)
         AND TRIM(f6.IBMCU) = '1801'
 WHERE
-    trim(f1.SDUPMJ) >= $(vars.jobRun.date) 
+    trim(f1.SDUPMJ) >= $(vars.jobRun.date)
     AND trim(f1.SDTDAY) < $(vars.previousJobRun.time) AND 
-        trim(f1.SDKCOO) = '00010' "]]></ee:set-payload>
+ trim(f1.SDKCOO) = '00010'"]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<db:select doc:name="Execute Sql Query" doc:id="ac2f9ae6-bccd-43bf-9b03-370487f2f6c4" config-ref="Database_Config">
@@ -115,11 +118,10 @@ WHERE
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
-fun JuliantoNormalDate(in) = using (
-		day = in[2 to 4] default null,
-		year = in[0 to 1] default null
-)
-(((("0101" ++ year ) as Date {format: "ddMMyy"}) default "" + ("P$(day - 1)D" as Period)) as Date {format: "dd-MM-yyyy"}) default null
+fun julianDateToNormalDate(julianDate) = 
+	(((19 + (julianDate[0] as Number))* 100) default "" 
+	+ (julianDate[1 to 2] as Number) default "" ++ julianDate[3 to 5] default "")
+	as Date {format: "yyyyDDD"} as Date {format:"yyyy-MM-dd"} default null
 ---
 payload map ((item, index) -> 
  {
@@ -127,7 +129,7 @@ payload map ((item, index) ->
     "Amount__c": trim(item.SDAEXP)/100 default "",   //currency
     "Company_Number__c": trim(item.SDKCOO),   //string
     "Cost_when_parts_ship__c": trim(item.SDUNCS)/10000 default "",   //currency
-    "Actual_Ship_Date__c": JuliantoNormalDate(trim(item.SDDGL))as Date default null,   //date
+    "Actual_Ship_Date__c": julianDateToNormalDate(trim(item.SDDGL))as Date default null,   //date
     "Customer_Part_Number__c": trim(item.IVCITM),   //string
     "IWD_Amount__c":
     ((((trim(item.BPUPRC))/10000) default null )*(trim(item.SDUORG))) default null,    //currency 
@@ -141,32 +143,54 @@ payload map ((item, index) ->
 
     "Net_Sales_Amount__c": ((((((trim(item.BPUPRC))/10000) default null )*(trim(item.SDUORG))) default null)- ((trim(item.SDAEXP)))) default null,   //currency
     "NTN_Part__c": trim(item.SDLITM),   //string
-    "Order__c": trim(item.SDDOCO),   //number (0 dec)
-    "Order_Line__c": (trim(item.SDLNID)/1000) default null,   //number (3 dec)
-    "Order_Line_Qty__c": trim(item.SDUORG),   //number (0 dec)
+    "Order__c": trim(item.SDDOCO) as Number,   //number (0 dec)
+    "Order_Line__c": (trim(item.SDLNID)/1000) as Number default null,   //number (3 dec)
+    "Order_Line_Qty__c": trim(item.SDUORG) as Number,   //number (0 dec)
     "PO__c": trim(item.SDVR01),   //string
     "Product_Part__c": trim(item.IMDRAW) default "" ++ "-" ++ trim(item.IBPRP1) default "" ++ "-" ++ trim(item.IBSRP4) default "",   //string 
-    "Quantity__c": trim(item.SDSOQS),   //number (0 dec)
-    "Rebate_Number__c": if ((item.SDVR01) contains  "MCA") (((item.SDVR01) splitBy  "MCA" )[1])[0 to 6] else if ((item.SDVR01) contains  "CPA") (((item.SDVR01) splitBy  "CPA" )[1])[0 to 6] else "" , //lookup
+    "Quantity__c": trim(item.SDSOQS) as Number,   //number (0 dec)
+    "Rebate_Number__c": if (trim(item.SDVR01) contains  "MCA") ((trim(item.SDVR01) splitBy  "MCA" )[1])[0 to 6] else if (trim(item.SDVR01) contains  "CPA") ((trim(item.SDVR01) splitBy  "CPA" )[1])[0 to 6] else "" , //lookup
     "Rebate_Type__c": trim(item.IMDRAW) default "" ++ "-" ++ trim(item.IBPRP1)default "" ++ "-" ++ trim(item.IBSRP4) default "",   //string
   
     "CurrencyIsoCode": trim(item.SDCRCD),   //string
 
-    "Name":  trim(item.SDVR01) default "" ++ ":" ++ "(" ++ trim(item.SDDOCO) default "" ++ "-" ++ ((item.SDLNID)/1000) default "" ++ ")"  //string
+    "Name":  trim(item.SDVR01) default "" ++ ":" ++ "(" ++ trim(item.SDDOCO) default "" ++ "-" ++ (trim(item.SDLNID)/1000) default "" ++ ")"  //string
   } )]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Salesforce Payload" doc:id="7e02129f-0ac0-4a76-95c0-df9d30ac5c94" message="#[payload]"/>
+		<logger level="INFO" doc:name="salesforcepayload" doc:id="9725dcb7-1f6b-4f08-8f70-d3962e4b9598" message="#[payload]"/>
+		<logger level="INFO" doc:name="Total Records Logger" doc:id="128122f9-5ba6-4ebe-ab89-802192432f69" message="Total Records available: #[sizeOf(payload)]" />
 		<ee:transform doc:name="For Each Variable" doc:id="ac36bbce-c34c-4843-b5b5-95f7feafb54f" >
 			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+(payload) filter ((item, index) -> !isEmpty(item."Rebate_Number__c") )]]></ee:set-payload>
 			</ee:message>
 			<ee:variables >
-				<ee:set-variable variableName="successRecords" ><![CDATA[[]]]></ee:set-variable>
-				<ee:set-variable variableName="failureRecords" ><![CDATA[[]]]></ee:set-variable>
-				<ee:set-variable variableName="FEPayload" ><![CDATA[[]]]></ee:set-variable>
+				<ee:set-variable variableName="FEPayload" ><![CDATA[output application/json
+---
+{
+   "creditUpdateTotalSuccessRecords" : 0 ,
+   "creditUpdateTotalFailureRecords" : 0
+}]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<foreach doc:name="For Each" doc:id="6bc9f24e-56e6-4f39-895a-5b7037ac9d8f" batchSize="2">
+		<logger level="INFO" doc:name="Distinct Records Logger" doc:id="d876aa6d-54e1-4917-ab4d-a2233deff684" message="Records available with Rebate_NUmber: #[sizeOf(payload)]" />
+		<flow-ref doc:name="compositeRequestSubflow" doc:id="989fb36d-3842-48f4-8a1f-5779726e6767" name="compositeRequestSubflow"/>
+		<ee:transform doc:name="Response Payload" doc:id="e0edde65-aa82-46e4-9c26-8f040894ad0d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.FEPayload 
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="4b945e92-3ec7-4e23-813f-11c638d923a6" message='#[{"credit details end flow" : vars.FEPayload }]'/>
+	</sub-flow>
+	<flow name="compositeRequestSubflow" doc:id="a24da3dd-a469-409b-87a4-eed844c99e6a" >
+		<foreach doc:name="For Each" doc:id="4e17b195-d50f-4678-a48c-85f733a1d771" batchSize="2">
 			<ee:transform doc:name="Salesforce Request" doc:id="5785bd42-22fa-410f-87d5-cfa8d4cd6844">
 				<ee:message>
 					<ee:set-payload><![CDATA[%dw 2.0
@@ -182,7 +206,7 @@ output application/json
     ({
       "method": "GET",
       "referenceId": "refRebate$($$)",
-      "url": "/services/data/v57.0/query/?q=SELECT id from Rebate__c where 	RebateNumberText__c = '$($.Rebate_Number__c)'"
+      "url": "/services/data/v57.0/query/?q=SELECT id from Rebate__c where RebateNumberText__c = '$($.Rebate_Number__c)'"
     } ) if(!isEmpty($.Rebate_Number__c)),
     {
       "method": "POST",
@@ -225,51 +249,30 @@ output application/json
 			<salesforce-composite:execute-composite-request doc:name="Execute composite request" doc:id="b67387f5-9398-44c1-a9c6-60be8cac8ab3" config-ref="Salesforce_Composite_Config">
 			<reconnect />
 		</salesforce-composite:execute-composite-request>
-			<ee:transform doc:name="Success and Failure Records" doc:id="59b13a81-0af7-42c0-8d81-cc9f31cde758" >
-				<ee:message >
-				</ee:message>
-				<ee:variables >
-					<ee:set-variable variableName="successRecords" ><![CDATA[%dw 2.0
-output application/json
-var creditDetailsRef = payload.compositeResponse filter ((item) -> item.referenceId contains "refUpdateCreditDetails" )
-
-var success = sizeOf(creditDetailsRef.body.success filter ($)) default 0
----
-success]]></ee:set-variable>
-					<ee:set-variable variableName="failureRecords" ><![CDATA[%dw 2.0
-output application/json
-var creditDetailsRef = payload.compositeResponse filter ((item) -> item.referenceId contains "refUpdateCreditDetails" )
-
-var failure = sizeOf(creditDetailsRef.body.success filter (!$)) default 0
----
-failure]]></ee:set-variable>
-				</ee:variables>
-			</ee:transform>
-			<ee:transform doc:name="Salesforce Response" doc:id="6e038d5e-845e-47f1-8277-d305808cebb1">
+			<choice doc:name="Choice" doc:id="f00f3aa4-26c1-40bb-9dc1-d8ad087eae8f">
+							<when expression='#[isEmpty((payload.compositeResponse filter ((item) -&gt; item.referenceId contains "refUpdateCreditDetails") default "").body..message[0])]'>
+					<ee:transform doc:name="Salesforce Response" doc:id="6e038d5e-845e-47f1-8277-d305808cebb1">
 				<ee:message>
 				</ee:message>
-				<ee:variables >
-					<ee:set-variable variableName="FEPayload" ><![CDATA[%dw 2.0
-output application/json
+				<ee:variables>
+					<ee:set-variable variableName="FEPayload"><![CDATA[%dw 2.0
+output application/json indent=false
 var creditDetailsRef = payload.compositeResponse filter ((item) -> item.referenceId contains "refUpdateCreditDetails" )
-
+var success = sizeOf(creditDetailsRef.body.success filter ($))
+var failure = sizeOf(creditDetailsRef.body.success filter (!$))
 ---
-([{
-   "creditUpdateTotalSuccessRecorde" : (sizeOf(creditDetailsRef.body.success filter ($)) default 0) + (vars.successRecords default 0),
-   "creditUpdateTotalFailureRecords " : (sizeOf(creditDetailsRef.body.success filter (!$)) default 0) + (vars.failureRecords default 0)
-}] + vars.FEPayload)]]></ee:set-variable>
+{
+   "creditUpdateTotalSuccessRecords" : success + (vars.FEPayload.creditUpdateTotalSuccessRecords),
+   "creditUpdateTotalFailureRecords" : failure + (vars.FEPayload.creditUpdateTotalFailureRecords)
+}]]></ee:set-variable>
 				</ee:variables>
 			</ee:transform>
+					<logger level="INFO" doc:name="compositeResponse" doc:id="121f2d30-a129-40e9-b9b8-8050c71902f4" message="Counter No: #[vars.counter] SFResponse : #[vars.FEPayload]" />
+							</when>
+				<otherwise>
+					<logger level="INFO" doc:name="sf response" doc:id="3d9c67c3-72a1-4270-8fb8-856461d5a80b" message='#[{"message":"error while sending to SF","reason":(payload.compositeResponse filter ((item) -&gt; item.referenceId contains "refUpdateCreditDetails") default "").body..message}]' />
+							</otherwise>
+						</choice>
 		</foreach>
-		<ee:transform doc:name="Response Payload" doc:id="e0edde65-aa82-46e4-9c26-8f040894ad0d">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-vars.FEPayload 
-]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-		<logger level="INFO" doc:name="End Logger" doc:id="4b945e92-3ec7-4e23-813f-11c638d923a6" message='#[{"credit details end flow" : vars.FEPayload }]'/>
-	</sub-flow>
+	</flow>
 </mule>
