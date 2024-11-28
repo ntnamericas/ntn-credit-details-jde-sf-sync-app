@@ -2,17 +2,17 @@ api:
   id: "" 
 
 app:
-  name:  "" 
-  version: ""  
-  env: ""
+  name:  "credit-details" 
+  version: "1.0.0"
+  env: "PY/UAT"
 
 salesforce:
-  userName: ""
-  consumerkey: ""
-  tokenUrl: ""
+  userName: "mulesoftintegration@ntnusa.com.stage"
+  consumerKey: "3MVG90M53M443DSGxMju83GNEZS9BiRpKUui8cVi5kw733ps2DwQ9U6zeDmiwPhAb2vKQgm733j9BytSB4mSR"
+
 
 database:
-  host: ""
-  port: ""
-  userName: ""
-  serviceName: ""
+  host: "129.147.16.139"
+  port: "1521"
+  userName: "JWiewel" 
+  serviceName: "jdorclpy.netjiuwoz.vcnzgqox.oraclevcn.com"
