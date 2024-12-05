@@ -50,7 +50,8 @@ LEFT JOIN
         AND TRIM(f6.IBMCU) = '1801'
 WHERE
     trim(f1.SDUPMJ) >= $(vars.jobRun.date)
-    AND trim(f1.SDTDAY) < $(vars.previousJobRun.time) AND 
- trim(f1.SDKCOO) = '00010' AND trim(f1.SDLNTY) = 'RC' AND
-trim(f1.SDDCTO) = 'CR' AND
-(trim(f1.SDVR01) LIKE '%CP-MCA%' or trim(f1.SDVR01) LIKE '%CP-CPA%')"
+    AND trim(f1.SDTDAY) < $(vars.previousJobRun.time)
+AND trim(f1.SDKCOO) = '00010'
+AND trim(f1.SDLNTY) IN ('RC','RP','RS')
+AND trim(f1.SDDCTO) = 'CR'
+AND ((trim(f1.SDVR01) LIKE '%CP-MCA%') or (trim(f1.SDVR01) LIKE '%CP-CPA%'))"
