@@ -5,16 +5,6 @@ var sfId = vars.salesforceId[0].Id
 { 
   "compositeRequest": 
   [
-     ({
-      "method": "GET",
-      "referenceId": "refAccount",
-      "url": "/services/data/v57.0/query/?q=SELECT id from Account where JDE_AddressNumber__c = $(payload.JDE_Account__c)"
-    }) if(!isEmpty(payload.JDE_Account__c)),
-    ({
-      "method": "GET",
-      "referenceId": "refRebate",
-      "url": "/services/data/v57.0/query/?q=SELECT id from Rebate__c where RebateNumberText__c = '$(payload.Rebate_Number__c)'"
-    } ) if(!isEmpty(payload.Rebate_Number__c)),
     {
          "method": if (isEmpty(sfId))
                      "POST" 
@@ -27,7 +17,7 @@ var sfId = vars.salesforceId[0].Id
                      "/services/data/v57.0/sobjects/Rebate_Credit_Summary__c/$(sfId)",
        "body": if (isEmpty(sfId)) {
       	
-    "Account_Name__c": if(!isEmpty(payload.Account_Name__c))(payload.Account_Name__c) else if(!isEmpty("@{refAccount.records[0].Id}"))"@{refAccount.records[0].Id}" else "",
+    "Account_Name__c": if(!isEmpty(payload.Account_Name__c))(payload.Account_Name__c) else if(!isEmpty(vars.refAccId))((vars.refAccId)[0].Id) else "",
     "Amount__c": payload.Amount__c,
     "Company_Number__c": payload.Company_Number__c,
     "Cost_when_parts_ship__c": payload.Cost_when_parts_ship__c,
@@ -48,7 +38,7 @@ var sfId = vars.salesforceId[0].Id
     "PO__c": payload.PO__c,
     "Product_Part__c": payload.Product_Part__c,
     "Quantity__c": payload.Quantity__c,
-    "Rebate_Number__c": if(!isEmpty(payload.Rebate_Number__c))"@{refRebate.records[0].Id}" else "",      
+    "Rebate_Number__c": if(!isEmpty(payload.Rebate_Number__c))((vars.refRebateId)[0].Id) else "",      
     "Rebate_Type__c": payload.Rebate_Type__c,                
     "CurrencyIsoCode": payload.CurrencyIsoCode,
     "Name": payload.Name
@@ -56,7 +46,7 @@ var sfId = vars.salesforceId[0].Id
 	  else
 	  {
       	
-    "Account_Name__c": if(!isEmpty(payload.Account_Name__c))(payload.Account_Name__c) else if(!isEmpty("@{refAccount.records[0].Id}"))"@{refAccount.records[0].Id}" else "",
+    "Account_Name__c": if(!isEmpty(payload.Account_Name__c))(payload.Account_Name__c) else if(!isEmpty(vars.refAccId))((vars.refAccId)[0].Id) else "",
     "Amount__c": payload.Amount__c,
     "Company_Number__c": payload.Company_Number__c,
     "Cost_when_parts_ship__c": payload.Cost_when_parts_ship__c,
@@ -77,7 +67,7 @@ var sfId = vars.salesforceId[0].Id
     "PO__c": payload.PO__c,
     "Product_Part__c": payload.Product_Part__c,
     "Quantity__c": payload.Quantity__c,
-    //"Rebate_Number__c": if(!isEmpty(payload.Rebate_Number__c))"@{refRebate.records[0].Id}" else "",      
+    //"Rebate_Number__c": if(!isEmpty(payload.Rebate_Number__c)) ((vars.refRebateId)[0].Id) else "",      
     "Rebate_Type__c": payload.Rebate_Type__c,                
     "CurrencyIsoCode": payload.CurrencyIsoCode,
     //"Name": payload.Name

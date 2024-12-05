@@ -44,6 +44,53 @@ var lineC = payload.Line__c as String
 							<salesforce:query doc:name="select query" doc:id="7268f07d-b486-4181-a290-6ddd16beb3d5" config-ref="Salesforce_Config" target="salesforceId">
 								<salesforce:salesforce-query><![CDATA[#[vars.Id]]]></salesforce:salesforce-query>
 							</salesforce:query>
+							<ee:transform doc:name="Transform Message" doc:id="4e5aeed1-7b46-4c4f-9b11-58ed0ef61662" >
+								<ee:message >
+								</ee:message>
+								<ee:variables >
+									<ee:set-variable variableName="sfIdCompositeRequest" ><![CDATA[%dw 2.0
+output application/json
+---
+{ 
+  "compositeRequest": 
+  [
+     ({
+      "method": "GET",
+      "referenceId": "refAccount",
+      "url": "/services/data/v57.0/query/?q=SELECT id from Account where JDE_AddressNumber__c = $(payload.JDE_Account__c)"
+    }) if(!isEmpty(payload.JDE_Account__c)),
+    ({
+      "method": "GET",
+      "referenceId": "refRebate",
+      "url": "/services/data/v57.0/query/?q=SELECT id from Rebate__c where RebateNumberText__c = '$(payload.Rebate_Number__c)'"
+    } ) if(!isEmpty(payload.Rebate_Number__c))
+   ]
+  }
+   ]]></ee:set-variable>
+								</ee:variables>
+							</ee:transform>
+							<salesforce-composite:execute-composite-request doc:name="Execute composite request" doc:id="9bca3ec5-6232-461c-af90-6f5e888c20d1" config-ref="Salesforce_Composite_Config" >
+								<salesforce-composite:request-body ><![CDATA[#[(vars.sfIdCompositeRequest)]]]></salesforce-composite:request-body>
+							</salesforce-composite:execute-composite-request>
+							<ee:transform doc:name="sfID values" doc:id="d074edb5-6ca3-4bb3-8aff-f1179cd16221">
+												<ee:message />
+												<ee:variables>
+													<ee:set-variable variableName="refAccId"><![CDATA[%dw 2.0
+output application/json
+var refAccResponse = payload.compositeResponse filter ((item) -> item.referenceId contains "refAccount") default ""
+---
+
+refAccResponse.body[0].records
+]]></ee:set-variable>
+									<ee:set-variable variableName="refRebateId" ><![CDATA[%dw 2.0
+output application/json
+var refRebateResponse = payload.compositeResponse filter ((item) -> item.referenceId contains "refRebate") default ""
+---
+
+refRebateResponse.body[0].records
+]]></ee:set-variable>
+												</ee:variables>
+											</ee:transform>
 							<ee:transform doc:name="composite transform" doc:id="e4d72574-7cfb-458c-abfb-2eb225c15c2c">
 								<ee:message>
 									<ee:set-payload resource="dwl/compositeCreditDetailsTransform.dwl" />
@@ -76,13 +123,15 @@ else
 										</ee:variables>
 									</ee:transform>
 									<logger level="INFO" doc:name="compositeResponse" doc:id="57c38845-9fe8-46e2-9108-553b72331f6f" message="Counter No: #[vars.counter] SFResponse : #[vars.FEPayload]" />
-								</when>
+								
+</when>
 										<otherwise>
 									<logger level="INFO" doc:name="sf response" doc:id="22fee75a-f1cd-4afd-b98c-024e7e8026ab" message='#[{"message":"error while sending to SF","reason":(payload.compositeResponse filter ((item) -&gt; item.referenceId contains "refUpdateCreditDetails") default "").body..message}]' />
 								</otherwise>
 							</choice>
 								</parallel-foreach>
 							</batch:aggregator>
+							<logger level="INFO" doc:name="btachAggregatorRequest" doc:id="205ca9a9-2dfb-41e6-a962-06368b38517a" message="before going to btanch aggregator:#[payload]"/>
 						
 </batch:step>
 					</batch:process-records>
