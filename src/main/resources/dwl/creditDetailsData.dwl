@@ -1,9 +1,9 @@
 %dw 2.0
 output application/json
 fun julianDateToNormalDate(julianDate) = 
-	(((19 + (julianDate[0] as Number))* 100) default "" 
-	+ (julianDate[1 to 2] as Number) default "" ++ julianDate[3 to 5] default "")
-	as Date {format: "yyyyDDD"} as Date {format:"yyyy-MM-dd"} default null
+	((((19 + (julianDate[0] as Number))* 100) )
+	+ (julianDate[1 to 2] as Number)  ++ julianDate[3 to 5] )
+	as Date {format: "yyyyDDD"} as Date {format:"yyyy-MM-dd"} 
 ---
 payload map ((item, index) -> 
  {
