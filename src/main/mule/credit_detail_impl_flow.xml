@@ -69,7 +69,7 @@ output application/json
    ]]></ee:set-variable>
 								</ee:variables>
 							</ee:transform>
-							<salesforce-composite:execute-composite-request doc:name="Execute composite request" doc:id="9bca3ec5-6232-461c-af90-6f5e888c20d1" config-ref="Salesforce_Composite_Config" >
+							<salesforce-composite:execute-composite-request doc:name="Execute composite request" doc:id="9bca3ec5-6232-461c-af90-6f5e888c20d1" config-ref="Salesforce_Composite_Config" target="compositeResponse">
 								<salesforce-composite:request-body ><![CDATA[#[(vars.sfIdCompositeRequest)]]]></salesforce-composite:request-body>
 							</salesforce-composite:execute-composite-request>
 							<ee:transform doc:name="sfID values" doc:id="d074edb5-6ca3-4bb3-8aff-f1179cd16221">
@@ -77,14 +77,14 @@ output application/json
 												<ee:variables>
 													<ee:set-variable variableName="refAccId"><![CDATA[%dw 2.0
 output application/json
-var refAccResponse = payload.compositeResponse filter ((item) -> item.referenceId contains "refAccount") default ""
+var refAccResponse = vars.compositeResponse.compositeResponse filter ((item) -> item.referenceId contains "refAccount") default ""
 ---
 
 refAccResponse.body[0].records
 ]]></ee:set-variable>
 									<ee:set-variable variableName="refRebateId" ><![CDATA[%dw 2.0
 output application/json
-var refRebateResponse = payload.compositeResponse filter ((item) -> item.referenceId contains "refRebate") default ""
+var refRebateResponse = vars.compositeResponse.compositeResponse filter ((item) -> item.referenceId contains "refRebate") default ""
 ---
 
 refRebateResponse.body[0].records
