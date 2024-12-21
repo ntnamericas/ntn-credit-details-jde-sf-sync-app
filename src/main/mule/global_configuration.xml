@@ -29,4 +29,5 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="683f70fb-6cb9-4f17-8991-e2425ee2c4c5" >
 		<salesforce:oauth-user-pass-connection consumerKey="${salesforce.consumerKey}" consumerSecret="${secure::salesforce.consumerSecret}" username="${salesforce.userName}" password="${secure::salesforce.password}" securityToken="${secure::salesforce.securityToken}" tokenEndpoint="${secure::salesforce.tokenUrl}" />
 	</salesforce:sfdc-config>
+	<configuration doc:name="Configuration" doc:id="5c99c195-0b8d-4360-8afc-b46b95fc480a" defaultErrorHandler-ref="global-error-handler" />
 </mule>

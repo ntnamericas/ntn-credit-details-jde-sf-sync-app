@@ -48,34 +48,6 @@ JulianDate(now())]]></ee:set-variable>
 		<os:store doc:id="76f95675-9f02-41c7-b8f5-cda6ad77864f" key="previousJobRun" doc:name="Store current job run details" >
 			<os:value ><![CDATA[#[vars.jobRun]]]></os:value>
 		</os:store>
+		<error-handler ref="global-error-handler" />
 	</flow>
-	<sub-flow name="credit_detailSub_Flow" doc:id="c927517a-2606-407e-ae64-105d133095d3">
-		<logger level="INFO" doc:name="Start Logger" doc:id="4eaab530-0ae8-4e44-98a0-d018606d0013" message='#["Credit details start flow"]'/>
-		<ee:transform doc:name="Credit Details Query" doc:id="59b2feb9-359c-435f-85bb-c8069ef17d78">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output text/plain
----
-readUrl("classpath://queryScript/sqlScript-creditDetails-$(p('mule.env')).dwl","text/plain")]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="2253ccd7-82a1-4f38-be1d-6668856aedfb" expression="#[payload]" />
-		<db:select doc:name="Execute Sql Query" doc:id="ac2f9ae6-bccd-43bf-9b03-370487f2f6c4" config-ref="Database_Config">
-			<db:sql><![CDATA[#[payload]]]></db:sql>
-		</db:select>
-		<ee:transform doc:name="Transformation" doc:id="c8aad9ec-f059-4efa-98af-014778f10197">
-						<ee:message>
-							<ee:set-payload resource="dwl/creditDetailsData.dwl" />
-						</ee:message>
-					</ee:transform>
-		<choice doc:name="Choice" doc:id="6fb47a36-4acf-4d2e-8dba-790fd12d6980" >
-			<when expression="#[sizeOf(payload)&gt;0]">
-				<flow-ref doc:name="credit_detail_impl_flowSub_Flow" doc:id="62c065a9-b1b2-4530-9318-d17866707dec" name="credit_detail_impl_flowSub_Flow" />
-			</when>
-			<otherwise >
-				<logger level="INFO" doc:name="no input" doc:id="0ae518fd-0b7a-4884-b6e8-55e3d1a34ef8" message='no records are available to process'/>
-			</otherwise>
-		</choice>
-		<logger level="INFO" doc:name="end Logger" doc:id="f0813508-1391-4a0a-933d-49a8d57ad8a4" message='#["credit details flow ended."]'/>
-	</sub-flow>
 </mule>

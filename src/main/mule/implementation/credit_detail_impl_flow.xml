@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<sub-flow name="credit_detailSub_Flow" doc:id="76e811d6-5fbb-4bf0-82f9-481f29d9de8d">
+		<logger level="INFO" doc:name="Start Logger" doc:id="7bc166d6-1b31-4830-bf68-7c0bb5b22a77" message='#["Credit details start flow"]' />
+		<ee:transform doc:name="Credit Details Query" doc:id="e97d6c44-b77a-43f7-96cb-4baa82eddce1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+readUrl("classpath://queryScript/sqlScript-creditDetails-$(p('mule.env')).dwl","text/plain")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="4091d008-169e-47fc-92c0-fd83807b8356" expression="#[payload]" />
+		<until-successful doc:name="Until Successful" doc:id="d0a40629-de77-462b-80ef-5ec2fec98c8e" maxRetries="#[Mule::p('retry.attempts')]" millisBetweenRetries="#[Mule::p('retry.frequency')]">
+			<db:select doc:name="Execute Sql Query" doc:id="b87e4a6b-db06-4b2b-84e1-ab92588ddd90" config-ref="Database_Config">
+			<reconnect frequency="${max.frequency}" count="${max.retries}"/>
+				<db:sql><![CDATA[#[payload]]]></db:sql>
+		</db:select>
+		</until-successful>
+		<ee:transform doc:name="Transformation" doc:id="fa2cdf7e-e692-4c88-825a-dd0e3c0eda1f">
+			<ee:message>
+				<ee:set-payload resource="dwl/creditDetailsData.dwl" />
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="a1594534-80d7-43a1-9529-6854e31e8acf">
+			<when expression="#[sizeOf(payload)&gt;0]">
+				<flow-ref doc:name="credit_detail_impl_batch_sub_flow" doc:id="255c18a9-0b6a-4e87-8c3a-bbfe31e0aa1a" name="credit_detail_impl_batch_sub_flow" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="no input" doc:id="076be05e-1ce3-40a1-865e-f94887e653ab" message="no records are available to process" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="end Logger" doc:id="50e2f096-adc8-4363-ac21-d1fa8b4951db" message='#["credit details flow ended."]' />
+	</sub-flow>
+	<sub-flow name="credit_detail_impl_batch_sub_flow" doc:id="9829b81b-de32-4901-b384-a67c5185cc7a" >
+	<choice doc:name="Choice" doc:id="58f743af-d34b-428f-b264-4ec0674093b9" >
+			<when expression="#[payload !=[]]">
+				<logger level="INFO" doc:name="Total Records Logger" doc:id="6e5335f6-973e-495c-9d10-fe43a79e83a6" message="Total Records available: #[sizeOf(payload)]" />
+				<ee:transform doc:name="filtering with rebate" doc:id="8098fded-832a-4688-994b-d3082d1a5387">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(payload) filter ((item, index) -> !isEmpty(item."Rebate_Number__c") )]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="Distinct Records Logger" doc:id="5496001e-543e-410f-857b-27d74650b2ec" message="Records available with Rebate_NUmber: #[sizeOf(payload)]" />
+				<batch:job jobName="myBatcJob" doc:id="143fb384-0bee-4634-a0ea-02d054377902">
+					<batch:process-records >
+						<!-- <logger level="INFO" doc:name="Distinct Records Logger" doc:id="a118a937-bd4b-4213-8cbf-d2d2058f343e" message="Records available with Rebate_Number: #[sizeOf(payload)]" /> -->
+						<batch:step name="my-batch" doc:id="771418b1-9441-4f27-aa51-30db50175a7c" acceptExpression='payload."Rebate_Number__c" !="" and payload."Rebate_Number__c" != null'>
+							<ee:transform doc:name="set line c value" doc:id="2c1ee495-1a48-49c3-8df0-91f74abaf3d2" >
+								<ee:message >
+								</ee:message>
+								<ee:variables >
+									<ee:set-variable variableName="Line__c" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.Line__c as String]]></ee:set-variable>
+									<ee:set-variable variableName="Id" ><![CDATA[%dw 2.0
+output application/json
+var lineC = payload.Line__c as String
+---
+"select id from Rebate_Credit_Summary__c where Line__c = '$(lineC)'"]]></ee:set-variable>
+								</ee:variables>
+							</ee:transform>
+							<salesforce:query doc:name="select query" doc:id="7268f07d-b486-4181-a290-6ddd16beb3d5" config-ref="Salesforce_Config" target="salesforceId">
+								<reconnect count="${max.retries}" frequency="${max.frequency}"/>
+								<salesforce:salesforce-query><![CDATA[#[vars.Id]]]></salesforce:salesforce-query>
+							</salesforce:query>
+							<ee:transform doc:name="request payload" doc:id="4e5aeed1-7b46-4c4f-9b11-58ed0ef61662" >
+								<ee:message >
+								</ee:message>
+								<ee:variables >
+									<ee:set-variable variableName="sfIdCompositeRequest" ><![CDATA[%dw 2.0
+output application/json
+---
+{ 
+  "compositeRequest": 
+  [
+     ({
+      "method": "GET",
+      "referenceId": "refAccount",
+      "url": "/services/data/v57.0/query/?q=SELECT id from Account where JDE_AddressNumber__c = $(payload.JDE_Account__c)"
+    }) if(!isEmpty(payload.JDE_Account__c)),
+    ({
+      "method": "GET",
+      "referenceId": "refRebate",
+      "url": "/services/data/v57.0/query/?q=SELECT id from Rebate__c where RebateNumberText__c = '$(payload.Rebate_Number__c)'"
+    } ) if(!isEmpty(payload.Rebate_Number__c))
+   ]
+  }
+   ]]></ee:set-variable>
+								</ee:variables>
+							</ee:transform>
+							<salesforce-composite:execute-composite-request doc:name="Execute composite request" doc:id="9bca3ec5-6232-461c-af90-6f5e888c20d1" config-ref="Salesforce_Composite_Config" target="compositeResponse">
+								<reconnect count="${max.retries}" frequency="${max.frequency}"/>
+								<salesforce-composite:request-body ><![CDATA[#[(vars.sfIdCompositeRequest)]]]></salesforce-composite:request-body>
+							</salesforce-composite:execute-composite-request>
+							<ee:transform doc:name="sfID values" doc:id="d074edb5-6ca3-4bb3-8aff-f1179cd16221">
+												<ee:message />
+												<ee:variables>
+													<ee:set-variable variableName="refAccId"><![CDATA[%dw 2.0
+output application/json
+var refAccResponse = vars.compositeResponse.compositeResponse filter ((item) -> item.referenceId contains "refAccount") default ""
+---
+
+refAccResponse.body[0].records
+]]></ee:set-variable>
+									<ee:set-variable variableName="refRebateId" ><![CDATA[%dw 2.0
+output application/json
+var refRebateResponse = vars.compositeResponse.compositeResponse filter ((item) -> item.referenceId contains "refRebate") default ""
+---
+
+refRebateResponse.body[0].records
+]]></ee:set-variable>
+												</ee:variables>
+											</ee:transform>
+							<ee:transform doc:name="composite transform" doc:id="e4d72574-7cfb-458c-abfb-2eb225c15c2c">
+								<ee:message>
+									<ee:set-payload resource="dwl/compositeCreditDetailsTransform.dwl" />
+								
+</ee:message>
+							</ee:transform>
+							<batch:aggregator doc:name="Batch Aggregator" doc:id="700e1f6a-1ae8-4c80-8bcd-c2dfb6544b7f" size="10">
+								<ee:transform doc:name="set composite request" doc:id="ca53a2d3-264d-46e8-9746-85ca53c1dc02">
+										<ee:message>
+											<ee:set-payload><![CDATA[output application/json
+---
+payload map read( $, 'application/json')]]></ee:set-payload>
+										</ee:message>
+									</ee:transform>
+								<parallel-foreach doc:name="Parallel For Each" doc:id="48e7ae31-868f-4983-8c99-fbce775c52c0" collection="#[payload]" maxConcurrency="10">
+									<salesforce-composite:execute-composite-request doc:name="Execute composite request" doc:id="3c114cd8-7ade-4501-b06d-75fc7cacd24d" config-ref="Salesforce_Composite_Config" >
+										<reconnect frequency="${max.frequency}" count="${max.retries}"/>
+									</salesforce-composite:execute-composite-request>
+									<choice doc:name="" doc:id="d7f15b79-4dfe-4caf-861c-8ca26b526a59">
+								<when expression='#[isEmpty((payload.compositeResponse filter ((item) -&gt; item.referenceId contains "refUpdateCreditDetails") default "").body..message[0])]'>
+									<ee:transform doc:name="Salesforce Response" doc:id="4aca1fbd-8d4b-4f3e-9efe-f096cecb3799">
+										<ee:message />
+										<ee:variables>
+											<ee:set-variable variableName="FEPayload"><![CDATA[%dw 2.0
+output application/json indent=false
+var creditDetailsRef = payload.compositeResponse filter ((item) -> item.referenceId contains "refUpdateCreditDetails") default ""
+---
+if(creditDetailsRef[0].httpStatusCode == 204)
+("updated record succefully") 
+else 
+("Created record succefully")]]></ee:set-variable>
+										</ee:variables>
+									</ee:transform>
+									<logger level="INFO" doc:name="compositeResponse" doc:id="57c38845-9fe8-46e2-9108-553b72331f6f" message="Counter No: #[vars.counter] SFResponse : #[vars.FEPayload]" />
+								
+</when>
+										<otherwise>
+									<logger level="INFO" doc:name="sf response" doc:id="22fee75a-f1cd-4afd-b98c-024e7e8026ab" message='#[{"message":"error while sending to SF","reason":(payload.compositeResponse filter ((item) -&gt; item.referenceId contains "refUpdateCreditDetails") default "").body..message}]' />
+								</otherwise>
+							</choice>
+								</parallel-foreach>
+							</batch:aggregator>
+							<logger level="INFO" doc:name="btachAggregatorRequest" doc:id="205ca9a9-2dfb-41e6-a962-06368b38517a" message="before going to btanch aggregator:#[payload]"/>
+						
+</batch:step>
+					</batch:process-records>
+				</batch:job>
+			</when>
+		</choice>
+	</sub-flow>
+</mule>
