@@ -103,7 +103,7 @@ output application/json
    ]]></ee:set-variable>
 								</ee:variables>
 							</ee:transform>
-							<salesforce-composite:execute-composite-request doc:name="Execute composite request" doc:id="9bca3ec5-6232-461c-af90-6f5e888c20d1" config-ref="Salesforce_Composite_Config" target="compositeResponse">
+							<salesforce-composite:execute-composite-request doc:name="retrieve sfids" doc:id="9bca3ec5-6232-461c-af90-6f5e888c20d1" config-ref="Salesforce_Composite_Config" target="compositeResponse">
 								<reconnect count="${max.retries}" frequency="${max.frequency}"/>
 								<salesforce-composite:request-body ><![CDATA[#[(vars.sfIdCompositeRequest)]]]></salesforce-composite:request-body>
 							</salesforce-composite:execute-composite-request>
@@ -141,7 +141,7 @@ payload map read( $, 'application/json')]]></ee:set-payload>
 										</ee:message>
 									</ee:transform>
 								<parallel-foreach doc:name="Parallel For Each" doc:id="48e7ae31-868f-4983-8c99-fbce775c52c0" collection="#[payload]" maxConcurrency="10">
-									<salesforce-composite:execute-composite-request doc:name="Execute composite request" doc:id="3c114cd8-7ade-4501-b06d-75fc7cacd24d" config-ref="Salesforce_Composite_Config" >
+									<salesforce-composite:execute-composite-request doc:name="create/update creditdetails" doc:id="3c114cd8-7ade-4501-b06d-75fc7cacd24d" config-ref="Salesforce_Composite_Config" >
 										<reconnect frequency="${max.frequency}" count="${max.retries}"/>
 									</salesforce-composite:execute-composite-request>
 									<choice doc:name="" doc:id="d7f15b79-4dfe-4caf-861c-8ca26b526a59">

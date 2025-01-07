@@ -1,0 +1,44 @@
+{
+  "compositeResponse": [
+    {
+      "body": {
+        "totalSize": 1,
+        "done": true,
+        "records": [
+          {
+            "attributes": {
+              "type": "Account",
+              "url": "/services/data/v57.0/sobjects/Account/001VC0000128oinYAA"
+            },
+            "Id": "001VC0000128oinYAA"
+          }
+        ]
+      },
+      "httpHeaders": {
+        
+      },
+      "httpStatusCode": 200,
+      "referenceId": "refAccount"
+    },
+    {
+      "body": {
+        "totalSize": 1,
+        "done": true,
+        "records": [
+          {
+            "attributes": {
+              "type": "Rebate__c",
+              "url": "/services/data/v57.0/sobjects/Rebate__c/a5HVC0000032zFS2AY"
+            },
+            "Id": "a5HVC0000032zFS2AY"
+          }
+        ]
+      },
+      "httpHeaders": {
+        
+      },
+      "httpStatusCode": 200,
+      "referenceId": "refRebate"
+    }
+  ]
+}

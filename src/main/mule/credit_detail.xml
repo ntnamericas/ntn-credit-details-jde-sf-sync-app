@@ -10,7 +10,7 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
-	<flow name="credit_details" doc:id="0e3ac2cc-837c-41c1-a2e1-e44a4109c7f4" >
+	<flow name="credit_details_main_flow" doc:id="0e3ac2cc-837c-41c1-a2e1-e44a4109c7f4" >
 		<scheduler doc:name="Scheduler" doc:id="16871009-5f1c-40bb-a5ad-a78f3e03b8f3" >
 			<scheduling-strategy >
 				<fixed-frequency frequency="30" timeUnit="MINUTES"/>

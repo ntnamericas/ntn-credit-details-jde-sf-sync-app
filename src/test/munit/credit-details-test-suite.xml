@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="new-test-suite.xml" />
+	<munit:test name="credit_details-test-suite" doc:id="2eba4f53-cc7a-4c53-9d37-0dab741c5621" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Retrieve :previousJobRun" doc:id="97b4c31c-f1d0-46f4-aca4-39e451959b01" processor="os:retrieve">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="96d728f2-55c3-4bf4-bff3-ec21d2181599" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="Retrieve :previousJobRun" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="previousJobRun" value='#[readUrl("classpath://job_run_data_retrieve.json")]' />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="excute sql query" doc:id="3cf1c1ea-c91c-4084-b436-cbfabf704f38" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Execute Sql Query" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[readUrl("classpath://credit_data.json")]' mediaType="application/java" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="select query" doc:id="72205de9-4122-44e2-a3fe-a0d568706904" processor="salesforce:query">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="select query" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="salesforceId" value='#[readUrl("classpath://salesforce_id_data.json")]' mediaType="application/java" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="retrieve sfids" doc:id="6e6b705c-cd2e-4e55-9c9b-ff5c45249693" processor="salesforce-composite:execute-composite-request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="retrieve sfids" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="compositeResponse" value='#[readUrl("classpath://sfId_composite_response_data.json")]' mediaType="application/java" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="create/update creditdetails" doc:id="9f211077-102e-45f3-8123-24a68486f639" processor="salesforce-composite:execute-composite-request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="create/update creditdetails" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[readUrl("classpath://composite_response_data.json")]' mediaType="application/java" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Store current job run details" doc:id="7deefc16-2565-464f-add3-2a762421a797" processor="os:store">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Store current job run details" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="credit_details_main_flow" doc:id="8df6f68a-d807-4f24-94d2-22031abeb752" name="credit_details_main_flow"/>
+			<munit-tools:sleep time="10" doc:name="Sleep" doc:id="ab9693c9-6ee9-4502-b295-09c3293f2577" timeUnit="SECONDS"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="5d706758-0f0c-46dc-9e36-d92f0aa37d99" expression="#[payload != null]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>
