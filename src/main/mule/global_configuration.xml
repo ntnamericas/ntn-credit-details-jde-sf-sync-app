@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:db="http://www.mulesoft.org/schema/mule/db"
-	xmlns:os="http://www.mulesoft.org/schema/mule/os"
-	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
-http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
 	<salesforce-composite:composite-config name="Salesforce_Composite_Config" doc:name="Salesforce Composite Config" doc:id="e5e1e536-9a5d-4e2c-a350-b57ac154a9f1" >
 		<salesforce-composite:oauth-user-pass-connection consumerKey="${salesforce.consumerKey}" consumerSecret="${secure::salesforce.consumerSecret}" username="${salesforce.userName}" password="${secure::salesforce.password}" securityToken="${secure::salesforce.securityToken}" tokenEndpoint="${secure::salesforce.tokenUrl}" responseTimeout="10" connectionTimeout="2" responseTimeoutUnit="MINUTES" connectionTimeoutUnit="MINUTES">
 			<reconnection failsDeployment="true" >
@@ -30,4 +31,11 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 		<salesforce:oauth-user-pass-connection consumerKey="${salesforce.consumerKey}" consumerSecret="${secure::salesforce.consumerSecret}" username="${salesforce.userName}" password="${secure::salesforce.password}" securityToken="${secure::salesforce.securityToken}" tokenEndpoint="${secure::salesforce.tokenUrl}" />
 	</salesforce:sfdc-config>
 	<configuration doc:name="Configuration" doc:id="5c99c195-0b8d-4360-8afc-b46b95fc480a" defaultErrorHandler-ref="global-error-handler" />
+		<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="476f5b33-37e3-477d-80bc-f37ecfb02943" >
+		<email:smtp-connection host="${smtp.host}" user="${smtp.user}" password="${secure::smtp.password}" port="${smtp.port}">
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
 </mule>

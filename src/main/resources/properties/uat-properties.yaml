@@ -5,6 +5,11 @@ app:
   name:  "credit-details" 
   version: "1.0.0"
   env: "PY/UAT"
+  
+smtp:
+  user: "mulesoftsmtpuser@ntnusa.com"
+  host: "smtp.office365.com"
+  port: "25"
 
 salesforce:
   userName: "mulesoftintegration@ntnusa.com.stage"
