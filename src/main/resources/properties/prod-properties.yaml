@@ -3,15 +3,21 @@ api:
 
 app:
   name:  "credit-details" 
-  version: ""  
-  env: "Prod"
+  version: "1.0.0"
+  env: "PROD"
+  
+smtp:
+  user: "mulesoftsmtpuser@ntnusa.com"
+  host: "smtp.office365.com"
+  port: "25"
 
 salesforce:
   userName: "mulesoftintegration@ntnusa.com"
-  consumerkey: "3MVG9zlTNB8o8BA1T1gSt15tI0eCCfz2mZwvXlYeqAG5KoxwJdUTEkV3bZS9B5a4uMLPXa0f9WSU_7stONFky"
+  consumerKey: "3MVG9zlTNB8o8BA1T1gSt15tI0eCCfz2mZwvXlYeqAG5KoxwJdUTEkV3bZS9B5a4uMLPXa0f9WSU_7stONFky"
+
 
 database:
-  host: ""
-  port: ""
-  userName: ""
-  serviceName: ""
+  host: "129.147.16.38"
+  port: "1521"
+  userName: "c_mulesoft" 
+  serviceName: "jdeorcl.netuenazr.vcnzgqox.oraclevcn.com"
