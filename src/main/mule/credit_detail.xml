@@ -62,20 +62,20 @@ JulianDate((now()) as DateTime >>  "America/New_York" )
 ]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="jobRun logger" doc:id="7f582ec0-f89a-4866-afdb-4692c7dd5010" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;CurrenntjobRunDetails : " ++ vars.jobRun.^raw]' />
-		<os:retrieve doc:id="96d728f2-55c3-4bf4-bff3-ec21d2181599" key="previousCreditDetailsJobRun" target="previousJobRun" doc:name="Retrieve :previousJobRun" objectStore="Object_store">
+		<logger level="INFO" doc:name="jobRun logger" doc:id="7f582ec0-f89a-4866-afdb-4692c7dd5010" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;CurrenntjobRunDetails : " ++ vars.jobRun.^raw default ""]' />
+		<os:retrieve doc:id="96d728f2-55c3-4bf4-bff3-ec21d2181599" key="previousCreditDetailsJobRun" target="previousCreditDetailsJobRun" doc:name="Retrieve :previousJobRun" objectStore="Object_store">
 			<os:default-value ><![CDATA[#[vars.jobRun]]]></os:default-value>
 		</os:retrieve>
-		<ee:transform doc:name="static date code for testing-disable before actual deployment" doc:id="cc465ca8-476c-498a-b29f-added7fd4d4a">
+		<!-- [STUDIO:"static date code for testing-disable before actual deployment"]<ee:transform doc:name="static date code for testing-disable before actual deployment" doc:id="cc465ca8-476c-498a-b29f-added7fd4d4a">
 			<ee:message />
 			<ee:variables>
 				<ee:set-variable variableName="previousCreditDetailsJobRun" ><![CDATA[{
   "date": "125058",
   "time": "123918"
-}]]></ee:set-variable>
+}&#93;&#93;></ee:set-variable>
 			</ee:variables>
-		</ee:transform>
-		<!-- [STUDIO:"Logger"]<logger level="INFO" doc:name="Logger" doc:id="d078f2f0-458f-47c7-a7d0-4637177c9164" message='#[%dw 2.0&#10;output application/java&#10;&#45;&#45;-&#10;"&#10;LastjobRunDetails : " ++ vars.previousCreditDetailsJobRun.^raw&#93;' /> [STUDIO] -->
+		</ee:transform> [STUDIO] -->
+		<logger level="INFO" doc:name="Logger" doc:id="d078f2f0-458f-47c7-a7d0-4637177c9164" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"LastjobRunDetails : " ++ vars.previousCreditDetailsJobRun.^raw default ""]' />
 		<flow-ref doc:name="credit_detailSub_Flow" doc:id="13cf115d-727b-4d39-badd-265ba66d1ba1" name="credit_detailSub_Flow" />
 		<os:store doc:id="76f95675-9f02-41c7-b8f5-cda6ad77864f" key="previousCreditDetailsJobRun" doc:name="Store current job run details" objectStore="Object_store">
 			<os:value ><![CDATA[#[vars.jobRun]]]></os:value>

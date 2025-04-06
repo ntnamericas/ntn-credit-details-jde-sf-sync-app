@@ -1,5 +1,5 @@
 %dw 2.0
-output text/plain
+output application/java
 ---
 " SELECT
     f1.SDAEXP,
