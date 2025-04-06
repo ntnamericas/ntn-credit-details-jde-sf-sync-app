@@ -35,22 +35,22 @@ LEFT JOIN
     ON TRIM(f4.BPAN8) = '0' 
     AND TRIM(f4.BPLITM) = trim(f1.SDLITM) 
     AND TRIM(f4.BPMCU) = '1801' 
-    AND TRIM(f4.BPEFTJ) <= $(vars.jobRun.date) 
-    AND TRIM(f4.BPEXDJ) >= $(vars.jobRun.date)
+    AND TRIM(f4.BPEFTJ) <= $(vars.previousCreditDetailsJobRun.date) 
+    AND TRIM(f4.BPEXDJ) >= $(vars.previousCreditDetailsJobRun.date)
 LEFT JOIN
     TESTDTA.F4104 f5
     ON TRIM(f5.IVXRT) = 'C'
     AND TRIM(f5.IVAN8) = trim(f1.SDAN8)
     AND TRIM(f5.IVLITM) = trim(f1.SDLITM)
-    AND TRIM(f5.IVEFTJ) <= $(vars.jobRun.date)
-    AND TRIM(f5.IVEXDJ) >= $(vars.jobRun.date)
+    AND TRIM(f5.IVEFTJ) <= $(vars.previousCreditDetailsJobRun.date)
+    AND TRIM(f5.IVEXDJ) >= $(vars.previousCreditDetailsJobRun.date)
 LEFT JOIN
     TESTDTA.F4102 f6
        ON TRIM(f6.IBLITM) = trim(f1.SDLITM)
         AND TRIM(f6.IBMCU) = '1801'
 WHERE
-    trim(f1.SDUPMJ) >= $(vars.jobRun.date)
-    AND trim(f1.SDTDAY) < $(vars.previousJobRun.time)
+    trim(f1.SDUPMJ) >= $(vars.previousCreditDetailsJobRun.date)
+    AND trim(f1.SDTDAY) < $(vars.previousCreditDetailsJobRun.time)
 AND trim(f1.SDKCOO) = '00010'
 AND trim(f1.SDLNTY) IN ('RC','RP','RS')
 AND trim(f1.SDDCTO) = 'CR'

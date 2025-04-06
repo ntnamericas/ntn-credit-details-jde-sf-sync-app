@@ -21,11 +21,8 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 				<ee:variables />
 			</ee:transform>
 			<logger level="ERROR" doc:name="error response" doc:id="fdea321f-4c48-47eb-81d8-e5981eaffec1" message="ConnectivityIssue: #[payload]" />
-			<email:send doc:id="1e570a79-763f-44fc-89aa-ecb71e56d534" config-ref="Email_SMTP" fromAddress='#["mulesoftsmtpuser@ntnusa.com"]' subject="Connectivity Issue" doc:name="email send" >
+			<email:send doc:id="1e570a79-763f-44fc-89aa-ecb71e56d534" config-ref="Email_SMTP" subject="Connectivity Issue" doc:name="email send" toAddresses="p('smtp.to') splitBy &quot;,&quot;">
 				<reconnect frequency="${max.frequency}" count="${max.retries}" />
-				<email:to-addresses >
-					<email:to-address value='#["mulesoftsmtpuser@ntnusa.com"]' />
-				</email:to-addresses>
 			</email:send>
 			<logger level="INFO" doc:name="email response" doc:id="d6269ec5-ae5c-4fa6-b1cd-3ee40057fccb" message="EmailResponse:#[payload]" />
 		</on-error-continue>
