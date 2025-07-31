@@ -17,5 +17,12 @@ retry:
 timeout:
   connection: "1200000"
   response: "3000000"
+  
+foreach:
+  concurrency: "10"
+  
+batch:
+  blockSize: "1000"
+  batchAggSize: "10"
 
   

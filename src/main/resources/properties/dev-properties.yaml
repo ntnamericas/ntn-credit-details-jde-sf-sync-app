@@ -9,6 +9,11 @@ http:
   host: "0.0.0.0"
   port: "8081"
 
+smtp:
+  user: "mulesoftsmtpuser@ntnusa.com"
+  host: "smtp.office365.com"
+  port: "25"
+
 
 salesforce:
   userName: "ntnmule@prowesssoft.com.muledev"

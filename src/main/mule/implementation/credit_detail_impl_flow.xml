@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<sub-flow name="credit_detailSub_Flow" doc:id="76e811d6-5fbb-4bf0-82f9-481f29d9de8d">
+		<logger level="INFO" doc:name="Start Logger" doc:id="7bc166d6-1b31-4830-bf68-7c0bb5b22a77" message='#["Credit details start flow"]' />
+		<ee:transform doc:name="Credit Details Query" doc:id="e97d6c44-b77a-43f7-96cb-4baa82eddce1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+readUrl("classpath://queryScript/sqlScript-creditDetails-$(p('mule.env')).dwl","text/plain")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="4091d008-169e-47fc-92c0-fd83807b8356" expression="#[payload]" />
+		<until-successful doc:name="Until Successful" doc:id="d0a40629-de77-462b-80ef-5ec2fec98c8e" maxRetries="#[Mule::p('retry.attempts')]" millisBetweenRetries="#[Mule::p('retry.frequency')]">
+			<db:select doc:name="Execute Sql Query" doc:id="b87e4a6b-db06-4b2b-84e1-ab92588ddd90" config-ref="Database_Config">
+			<reconnect frequency="${max.frequency}" count="${max.retries}"/>
+				<db:sql><![CDATA[#[payload]]]></db:sql>
+		</db:select>
+		</until-successful>
+		<ee:transform doc:name="Transformation" doc:id="fa2cdf7e-e692-4c88-825a-dd0e3c0eda1f">
+			<ee:message>
+				<ee:set-payload resource="dwl/creditDetailsData.dwl" />
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="a1594534-80d7-43a1-9529-6854e31e8acf">
+			<when expression="#[sizeOf(payload)&gt;0]">
+				<flow-ref doc:name="credit_detail_impl_batch_sub_flow" doc:id="255c18a9-0b6a-4e87-8c3a-bbfe31e0aa1a" name="credit_detail_impl_batch_sub_flow" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="no input" doc:id="076be05e-1ce3-40a1-865e-f94887e653ab" message="no records are available to process" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="end Logger" doc:id="50e2f096-adc8-4363-ac21-d1fa8b4951db" message='#["credit details flow ended."]' />
+	</sub-flow>
+	
+</mule>

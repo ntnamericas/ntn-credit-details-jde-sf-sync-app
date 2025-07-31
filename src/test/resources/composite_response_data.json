@@ -1,0 +1,12 @@
+{
+  "compositeResponse": [
+    {
+      "body": null,
+      "httpHeaders": {
+        
+      },
+      "httpStatusCode": 204,
+      "referenceId": "refUpdateCreditDetails"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+
+database:
+  password: "![qShUQca+XRPO80VgwER8uQ==]"
+  
+    
+    
+smtp:
+  password: "![Yk3HBzCPPp5RL3nOfWNzirX1mi98hVMs]"
+  
+salesforce:
+  consumerSecret: "![/R6rU6BCBm6HSsMJWPKTSd97S0VwGuQdqnnCRpYHdgJfJ7hb/Va5860uD6lVzmQ/95UtFnynjLulyE8DlNQGAyDIjV/aQhK2]"
+  tokenUrl: "![m67Li978SJvXmcejyk2dQFiDSi07dfdmQWnz6+TdBoG5Yum2MdVwhLq9g4HmFLfDeOSUthv3HSDCU3UpW3LNpw==]"
+  password: "![2YNZt1lm+MRm7qkhAuEumw==]"
+  securityToken: "![pxS/bMSXsKXRM/Ph2PWwFqE1Lk9fXlTzNNGx3zwfAz8=]"
