@@ -21,11 +21,11 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 		<db:config name="Database_Config" doc:name="Database Config" doc:id="fabbd01c-5b78-4709-90bd-6c1daf370674" >
 		<db:oracle-connection host="${database.host}" user="${database.userName}" password="${secure::database.password}" serviceName="${database.serviceName}" port="${database.port}"/>
 	</db:config>
-	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="e42dfb8f-1166-427c-8a2c-b5fedf9384a6" file="properties/${mule.env}-secure-properties.yaml" key="${mule.key}" >
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="e42dfb8f-1166-427c-8a2c-b5fedf9384a6" file="properties/${mule.env}-secure-properties.yaml" key="${encrypt.key}" >
 		<secure-properties:encrypt algorithm="Blowfish" />
 	</secure-properties:config>
 	<configuration-properties doc:name="Configuration properties" doc:id="75f9df82-d54a-42f9-b0b5-13246dfcd8de" file="properties/common.yaml" />
-	<global-property doc:name="Global Property" doc:id="557a1bee-da5c-4674-9922-0255a57482da" name="mule.key" value="${mule.key}" />
+	<global-property doc:name="Global Property" doc:id="557a1bee-da5c-4674-9922-0255a57482da" name="encrypt.key" value="${encrypt.key}" />
 	<configuration-properties doc:name="Configuration properties" doc:id="1f2f5b8a-472b-447e-ab1e-0198425e8c35" file="properties/${mule.env}-properties.yaml" />
 	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="683f70fb-6cb9-4f17-8991-e2425ee2c4c5" >
 		<salesforce:oauth-user-pass-connection consumerKey="${salesforce.consumerKey}" consumerSecret="${secure::salesforce.consumerSecret}" username="${salesforce.userName}" password="${secure::salesforce.password}" securityToken="${secure::salesforce.securityToken}" tokenEndpoint="${secure::salesforce.tokenUrl}" />

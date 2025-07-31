@@ -10,7 +10,7 @@ smtp:
   user: "mulesoftsmtpuser@ntnusa.com"
   host: "smtp.office365.com"
   port: "25"
-  to: "ntnmule@prowesssoft.com,noreply@ntnusa.com"
+  to: "ntnmule@prowesssoft.com,donotnoreply@ntnusa.com"
 
 salesforce:
   userName: "mulesoftintegration@ntnusa.com"
