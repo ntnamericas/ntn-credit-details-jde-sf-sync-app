@@ -19,7 +19,7 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 	</salesforce-composite:composite-config>
 	<os:object-store name="Object_store" doc:name="Object store" doc:id="131334b7-5d6a-4ba6-8d74-26e10eb6920d" />
 		<db:config name="Database_Config" doc:name="Database Config" doc:id="fabbd01c-5b78-4709-90bd-6c1daf370674" >
-		<db:oracle-connection host="${database.host}" user="${database.userName}" password="${secure::database.password}" serviceName="${database.serviceName}" port="${database.port}"/>
+		<db:oracle-connection host="${database.host}" user="${secure::database.userName}" password="${secure::database.password}" serviceName="${database.serviceName}" port="${database.port}"/>
 	</db:config>
 	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="e42dfb8f-1166-427c-8a2c-b5fedf9384a6" file="properties/${mule.env}-secure-properties.yaml" key="${encrypt.key}" >
 		<secure-properties:encrypt algorithm="Blowfish" />

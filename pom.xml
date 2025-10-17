@@ -2,12 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.mycompany</groupId>
-	<artifactId>credit_details</artifactId>
-	<version>1.1.0-rc2</version>
+	<groupId>com.ntn</groupId>
+	<artifactId>ntn-credit-details-jde-sf-sync-app</artifactId>
+	<version>1.1.0-rc3</version>
 	<packaging>mule-application</packaging>
 
-	<name>credit_details</name>
+	<name>ntn-credit-details-jde-sf-sync-app</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,7 +30,7 @@
 				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
-				<configuration>
+				<!-- <configuration>
 					<sharedLibraries>
 						<sharedLibrary>
 							<groupId>com.oracle.ojdbc</groupId>
@@ -38,7 +38,16 @@
 						</sharedLibrary>
 					</sharedLibraries>
 					<classifier>mule-application</classifier>
-				</configuration>
+				</configuration> -->
+				<configuration>
+			        <sharedLibraries>
+			            <sharedLibrary>
+			                <groupId>com.oracle.database.jdbc</groupId>
+			                <artifactId>ojdbc11</artifactId>
+			            </sharedLibrary>
+			        </sharedLibraries>
+			        <classifier>mule-application</classifier>
+			    </configuration>
 			</plugin>
 			<plugin>
 				<groupId>com.mulesoft.munit.tools</groupId>
@@ -139,6 +148,11 @@
 			<artifactId>mule-salesforce-connector</artifactId>
 			<version>10.22.9</version>
 			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+		    <groupId>com.oracle.database.jdbc</groupId>
+		    <artifactId>ojdbc11</artifactId>
+		    <version>23.9.0.25.07</version>
 		</dependency>
 	</dependencies>
 
