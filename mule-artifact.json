@@ -1,4 +1,50 @@
 {
-    "minMuleVersion": "4.6.2",
-    "javaSpecificationVersions": ["17"]
+  "configs": [
+    "credit_detail_impl_flow.xml",
+    "implementation/credit_detail_impl_flow.xml",
+    "implementation/credit_detail-sub-flow.xml",
+    "global_configuration.xml",
+    "global_error_handler.xml",
+    "credit_detail.xml"
+  ],
+  "secureProperties": [],
+  "supportedJavaVersions": [],
+  "redeploymentEnabled": true,
+  "name": "com.ntn:ntn-credit-details-jde-sf-sync-app:1.1.0-rc3",
+  "minMuleVersion": "4.6.2",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "application-types.xml",
+        "credit_detail.xml",
+        "credit_detail_impl_flow.xml",
+        "dwl/compositeCreditDetailsTransform.dwl",
+        "dwl/creditDetailsData.dwl",
+        "dwl/technicalError.dwl",
+        "global_configuration.xml",
+        "global_error_handler.xml",
+        "implementation/credit_detail-sub-flow.xml",
+        "implementation/credit_detail_impl_flow.xml",
+        "log4j2.xml",
+        "properties/common.yaml",
+        "properties/dev-properties.yaml",
+        "properties/dev-secure-properties.yaml",
+        "properties/prod-properties.yaml",
+        "properties/prod-secure-properties.yaml",
+        "properties/test-properties.yaml",
+        "properties/uat-properties.yaml",
+        "properties/uat-secure-properties.yaml",
+        "queryScript/sqlScript-creditDetails-dev.dwl",
+        "queryScript/sqlScript-creditDetails-prod.dwl",
+        "queryScript/sqlScript-creditDetails-uat.dwl"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
 }

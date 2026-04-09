@@ -4,7 +4,7 @@
 
 	<groupId>com.ntn</groupId>
 	<artifactId>ntn-credit-details-jde-sf-sync-app</artifactId>
-	<version>1.1.0-rc3</version>
+	<version>1.1.0-rc4</version>
 	<packaging>mule-application</packaging>
 
 	<name>ntn-credit-details-jde-sf-sync-app</name>
@@ -40,14 +40,14 @@
 					<classifier>mule-application</classifier>
 				</configuration> -->
 				<configuration>
-			        <sharedLibraries>
-			            <sharedLibrary>
-			                <groupId>com.oracle.database.jdbc</groupId>
-			                <artifactId>ojdbc11</artifactId>
-			            </sharedLibrary>
-			        </sharedLibraries>
-			        <classifier>mule-application</classifier>
-			    </configuration>
+					<sharedLibraries>
+						<sharedLibrary>
+							<groupId>com.oracle.database.jdbc</groupId>
+							<artifactId>ojdbc11</artifactId>
+						</sharedLibrary>
+					</sharedLibraries>
+					<classifier>mule-application</classifier>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>com.mulesoft.munit.tools</groupId>
@@ -150,9 +150,9 @@
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-		    <groupId>com.oracle.database.jdbc</groupId>
-		    <artifactId>ojdbc11</artifactId>
-		    <version>23.9.0.25.07</version>
+			<groupId>com.oracle.database.jdbc</groupId>
+			<artifactId>ojdbc11</artifactId>
+			<version>23.9.0.25.07</version>
 		</dependency>
 	</dependencies>
 
